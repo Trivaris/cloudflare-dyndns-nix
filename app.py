@@ -1,3 +1,4 @@
+import argparse
 import os
 import CloudFlare
 import waitress
@@ -8,7 +9,7 @@ app = flask.Flask(__name__)
 
 
 @app.route('/', methods=['GET'])
-def main():
+def update_dns():
     token = flask.request.args.get('token')
     zone = flask.request.args.get('zone')
     record = flask.request.args.get('record')
@@ -61,4 +62,29 @@ def healthz():
 
 
 app.secret_key = os.urandom(24)
-waitress.serve(app, host='0.0.0.0', port=80)
+
+
+def main():
+    parser = argparse.ArgumentParser(description="Cloudflare DynDNS middleware server")
+    parser.add_argument(
+        "--port",
+        type=int,
+        default=80,
+        help="Port for the Waitress server to listen on (default: 80)",
+    )
+    parser.add_argument(
+        "--test",
+        action="store_true",
+        help="Print a test message and exit without starting the server",
+    )
+    args = parser.parse_args()
+
+    if args.test:
+        print("Working!")
+        return
+
+    waitress.serve(app, host='0.0.0.0', port=args.port)
+
+
+if __name__ == '__main__':
+    main()
